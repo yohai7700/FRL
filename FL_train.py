@@ -26,7 +26,10 @@ def FRL_train(tr_loaders, te_loader):
     sss = "fraction of maliciou clients: %.2f | total number of malicious clients: %d"%(args.at_fractions,
                                                                                         n_attackers)
     print (sss)
-    with (args.run_base_dir / "output.txt").open("a") as f:
+
+    output_file = args.run_base_dir / "output.txt"
+    print(f"writing result to: {output_file}")
+    with (output_file).open("a") as f:
         f.write("\n"+str(sss))
     
     criterion = nn.CrossEntropyLoss().to(args.device)
@@ -48,7 +51,7 @@ def FRL_train(tr_loaders, te_loader):
             round_users = np.random.choice(args.nClients, args.round_nclients, replace=False)
             round_malicious = round_users[round_users < n_attackers]
             round_benign = round_users[round_users >= n_attackers]
-            
+        
         user_updates=collections.defaultdict(list)
         ########################################benign Client Learning#########################################
         for kk in round_benign:
@@ -91,13 +94,17 @@ def FRL_train(tr_loaders, te_loader):
 
             for n, m in FLmodel.named_modules():
                 if hasattr(m, "scores"):
+                    module_name = str(n)
                     rank_mal_agr=torch.sort(sum_args_sorts_mal[str(n)], descending=True)[1]
+                    sorted_indices = torch.sort(sum_args_sorts_mal[module_name])[1]
+                    # rank_mal_agr = swap_half(sorted_indices)
                     for kk in round_malicious:
                         user_updates[str(n)]=rank_mal_agr[None,:] if len(user_updates[str(n)]) == 0 else torch.cat((user_updates[str(n)], rank_mal_agr[None,:]), 0)
             del sum_args_sorts_mal
         ########################################Server AGR#########################################
         FRL_Vote(FLmodel, user_updates, initial_scores)
         del user_updates
+        print(f"epoch: {e}, {(e+1)%1}")
         if (e+1)%1==0:
             t_loss, t_acc = test(te_loader, FLmodel, criterion, args.device) 
             if t_acc>t_best_acc:
@@ -111,6 +118,13 @@ def FRL_train(tr_loaders, te_loader):
         
         
 #####################################FedAVG#########################################
+def swap_half(tensor):
+    half_len = len(tensor) // 2
+    first_half = tensor[:half_len]
+    second_half = tensor[half_len:]
+    return torch.cat([second_half, first_half])
+
+
 def FedAVG(tr_loaders, te_loader):
     print ("#########Federated Learning using FedAVG############")
     args.conv_type = 'StandardConv'
