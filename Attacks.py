@@ -7,6 +7,54 @@ import pickle
 import torch.nn as nn
 import argparse, os, sys, csv, shutil, time, random, operator, pickle, ast, math, copy
 import numpy as np
+from utils import get_voted_ranking
+
+def frl_greedy_attack(ranking, malicious_count, honest_count):
+    honest_ranking = ranking # get_voted_ranking(rankings)
+    overall_ranking = honest_ranking
+    edge_index_candidates = reversed([edge for edge in range(len(honest_ranking) // 2, len(honest_ranking))])
+
+    target_index = len(overall_ranking) // 2
+    for edge_index in edge_index_candidates:
+        print(f"checking edge: {edge_index}, len: {len(honest_ranking)}")
+        # if not heuristic(overall_ranking, 0, edge_index, honest_ranking, malicious_count, honest_count):
+        #     continue
+        while target_index != 0:
+            print(f"checking target edge: {edge_index}, len: {len(honest_ranking)}")
+            candidate_ranking = ranking_move_edge(overall_ranking, target_index, edge_index)
+            success = frl_greedy_attack_predict_success(candidate_ranking, honest_ranking, malicious_count, honest_count, honest_ranking[edge_index])
+
+            target_index -= 1
+            if success:
+                print("success")
+                overall_ranking = candidate_ranking
+                break
+            
+        if target_index == 0:
+            return overall_ranking
+        # for target_index in reversed(range(0, len(overall_ranking) // 2)):
+        #     candidate_ranking = ranking_move_edge(overall_ranking, target_index, edge_index)
+        #     success = frl_greedy_attack_predict_success(candidate_ranking, honest_ranking, malicious_count, honest_count, honest_ranking[edge_index])
+        #     if success:
+        #         print("success")
+        #         overall_ranking = candidate_ranking
+    return overall_ranking
+
+def heuristic(overall_ranking, target_index, edge_index, honest_ranking, malicious_count, honest_count):
+    candidate_ranking = ranking_move_edge(overall_ranking, target_index, edge_index)
+    return frl_greedy_attack_predict_success(candidate_ranking, honest_ranking, malicious_count, honest_count, honest_ranking[edge_index])
+
+def ranking_move_edge(ranking, target_index, edge_index):
+    return torch.cat([ranking[:target_index], ranking[edge_index: edge_index + 1], ranking[target_index: edge_index], ranking[edge_index + 1:]])
+
+def frl_greedy_attack_predict_success(mal_ranking: torch.Tensor, honest_ranking: torch.Tensor, malicious_count, honest_count, edge):
+    rankings = torch.cat((mal_ranking.tile((malicious_count,1)), honest_ranking.tile((honest_count, 1))), 0)
+    overall_ranking = get_voted_ranking(rankings)
+    index = tensor_index_of(overall_ranking, edge)
+    return index < len(rankings) / 2
+
+def tensor_index_of(tensor, target_value):
+    return (tensor == target_value).nonzero().item()
 
 def our_attack_trmean(all_updates, n_attackers, dev_type='sign', threshold=5.0, threshold_diff=1e-5):
     

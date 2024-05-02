@@ -98,6 +98,7 @@ def FRL_train(tr_loaders, te_loader):
                     rank_mal_agr=torch.sort(sum_args_sorts_mal[str(n)], descending=True)[1]
                     sorted_indices = torch.sort(sum_args_sorts_mal[module_name])[1]
                     # rank_mal_agr = swap_half(sorted_indices)
+                    rank_mal_agr = frl_greedy_attack(sorted_indices, len(round_malicious), len(round_benign))
                     for kk in round_malicious:
                         user_updates[str(n)]=rank_mal_agr[None,:] if len(user_updates[str(n)]) == 0 else torch.cat((user_updates[str(n)], rank_mal_agr[None,:]), 0)
             del sum_args_sorts_mal
@@ -105,7 +106,7 @@ def FRL_train(tr_loaders, te_loader):
         FRL_Vote(FLmodel, user_updates, initial_scores)
         del user_updates
         print(f"epoch: {e}, {(e+1)%1}")
-        if (e+1)%1==0:
+        if e % 10 == 0:
             t_loss, t_acc = test(te_loader, FLmodel, criterion, args.device) 
             if t_acc>t_best_acc:
                 t_best_acc=t_acc
@@ -118,10 +119,10 @@ def FRL_train(tr_loaders, te_loader):
         
         
 #####################################FedAVG#########################################
-def swap_half(tensor):
-    half_len = len(tensor) // 2
+def swap_half(tensor: torch.Tensor):
+    half_len = (len(tensor) // 2) - 20
     first_half = tensor[:half_len]
-    second_half = tensor[half_len:]
+    second_half = torch.flip(tensor[half_len:], [0])
     return torch.cat([second_half, first_half])
 
 

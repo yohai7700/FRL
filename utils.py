@@ -7,6 +7,11 @@ import torch.nn as nn
 import argparse, os, sys, csv, shutil, time, random, operator, pickle, ast, math, copy
 import numpy as np
 
+def get_voted_ranking(rankings):
+    args_sorts=torch.sort(rankings)[1]
+    sum_args_sorts=torch.sum(args_sorts, 0)
+    idxx=torch.sort(sum_args_sorts)[1]
+    return idxx
 
 def Find_rank(scores):
     _, idx = scores.detach().flatten().sort()

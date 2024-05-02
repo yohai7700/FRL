@@ -11,6 +11,8 @@ from FL_train import *
 
 
 def main():
+    # result = frl_greedy_attack(torch.Tensor([0, 1, 2, 3, 4, 5]), 4, 1)
+
     if args.seed is not None:
         random.seed(args.seed)
         torch.manual_seed(args.seed)
