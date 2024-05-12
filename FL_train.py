@@ -98,7 +98,7 @@ def FRL_train(tr_loaders, te_loader):
         ########################################Server AGR#########################################
         FRL_Vote(FLmodel, user_updates, initial_scores)
         del user_updates
-        if (e+1)%1==0:
+        if e%20==0:
             t_loss, t_acc = test(te_loader, FLmodel, criterion, args.device) 
             if t_acc>t_best_acc:
                 t_best_acc=t_acc

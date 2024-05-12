@@ -7,6 +7,7 @@ import torch
 
 import data
 from FL_train import *
+from training.frl_footrule import train_with_frl_footrule
 
 
 
@@ -55,6 +56,8 @@ def main():
     
     #Federated Learning
     print ("type of FL: ", args.FL_type)
+    if args.FL_type == "FrlFootrule":
+        train_with_frl_footrule(tr_loaders, te_loader)
     if args.FL_type == "FRL":
         FRL_train(tr_loaders, te_loader)
     elif args.FL_type == "FedAVG":
