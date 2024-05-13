@@ -23,6 +23,16 @@ def FRL_Vote(FLmodel, user_updates, initial_scores):
             temp1.flatten()[idxx]=initial_scores[str(n)]
             m.scores=torch.nn.Parameter(temp1)                    
             del idxx, temp1
+
+def update_global_model_by_ranking(model, user_updates, initial_scores, vote):
+    for n, m in model.named_modules():
+        if hasattr(m, "scores"):
+            args_sorts=torch.sort(user_updates[str(n)])[1]
+            ranking = vote(args_sorts)
+            temp1=m.scores.detach().clone()
+            temp1.flatten()[ranking]=initial_scores[str(n)]
+            m.scores=torch.nn.Parameter(temp1)                    
+            del ranking, temp1
             
             
 def train(trainloader, model, criterion, optimizer, device):

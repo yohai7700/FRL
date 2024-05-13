@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from utils import train, Find_rank, FRL_Vote, test
+from utils import train, Find_rank, FRL_Vote, test, update_global_model_by_ranking
 
 from aggregations import get_voting_mechanism
 
@@ -33,7 +33,8 @@ def train_with_frl_footrule(tr_loaders, te_loader):
         if len(round_malicious) > 0:
             run_malicious_users(epoch, model, round_malicious, get_attackers_count(), user_updates, tr_loaders, criterion)
 
-        FRL_Vote(model, user_updates, scores)
+        update_global_model_by_ranking(model, user_updates, scores, vote)
+        # FRL_Vote(model, user_updates, scores)
         del user_updates
         if epoch % 20 == 0:
             t_loss, t_acc = test(te_loader, model, criterion, args.device) 
