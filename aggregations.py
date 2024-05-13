@@ -1,5 +1,4 @@
 import torch
-import ranky as rk
 
 def get_voted_ranking_by_sum(rankings):
     sum_args_sorts=torch.sum(rankings, 0)
@@ -14,10 +13,6 @@ def aggregate_ranking_with_trim(rankings):
     selected_indices = sorted_indices[:int((1 - fraction) * len(rankings))]
     return get_voted_ranking_by_sum(rankings[selected_indices])
 
-def get_kemeny_young_ranking(rankings):
-    return rk.center(rankings, method='kendalltau')
 
 def get_voting_mechanism(method = "sum"):
-    if method == "kemeny_young":
-        return get_kemeny_young_ranking
     return aggregate_ranking_with_trim
