@@ -11,15 +11,19 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils import train, Find_rank, FRL_Vote, test
 
+from aggregations import get_voting_mechanism
+
 def train_with_frl_footrule(tr_loaders, te_loader):
     print ("#########Federated Learning using Rankings - Footrule Variant############")
     criterion = nn.CrossEntropyLoss().to(args.device)
     model = initialize_model()
     scores = initialize_scores(model)
 
-    epoch = 0
+    vote = get_voting_mechanism("sum")
+
     t_best_acc = 0
-    while epoch <= args.FL_global_epochs:
+    for epoch in range(args.FL_global_epochs):
+        print(f"starting epoch: {epoch}")
         torch.cuda.empty_cache()
         user_updates = defaultdict(list)
 
@@ -36,7 +40,6 @@ def train_with_frl_footrule(tr_loaders, te_loader):
             t_best_acc = max(t_best_acc, t_acc)
 
             log('e %d | malicious users: %d | test acc %.4f test loss %.6f best test_acc %.4f' % (epoch, len(round_malicious), t_acc, t_loss, t_best_acc))
-        epoch += 1
 
 
 def initialize_model():
