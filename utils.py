@@ -33,6 +33,16 @@ def update_global_model_by_ranking(model, user_updates, initial_scores, vote):
             temp1.flatten()[ranking]=initial_scores[str(n)]
             m.scores=torch.nn.Parameter(temp1)                    
             del ranking, temp1
+
+def dyanmic_vote(FLmodel, user_updates, initial_scores, vote):
+    for n, m in FLmodel.named_modules():
+        if hasattr(m, "scores"):
+            args_sorts=torch.sort(user_updates[str(n)])[1]
+            ranking = vote(args_sorts)
+            temp1=m.scores.detach().clone()
+            temp1.flatten()[ranking]=initial_scores[str(n)]
+            m.scores=torch.nn.Parameter(temp1)                    
+            del ranking, temp1
             
             
 def train(trainloader, model, criterion, optimizer, device):
