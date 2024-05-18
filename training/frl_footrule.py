@@ -14,13 +14,13 @@ from aggregations import get_voting_mechanism
 from utils import train, Find_rank, dyanmic_vote, test
 from voting_mechanisms import trimmed_vote_sum
 
-def train_with_frl_footrule(tr_loaders, te_loader):
+def train_with_frl_variant(tr_loaders, te_loader):
     print ("#########Federated Learning using Rankings - Footrule Variant############")
     criterion = nn.CrossEntropyLoss().to(args.device)
     model = initialize_model()
     scores = initialize_scores(model)
 
-    vote = get_voting_mechanism("sum")
+    vote = get_voting_mechanism(args.aggregation_method)
 
     t_best_acc = 0
     for epoch in range(args.FL_global_epochs):
@@ -34,7 +34,7 @@ def train_with_frl_footrule(tr_loaders, te_loader):
         if len(round_malicious) > 0:
             run_malicious_users(epoch, model, round_malicious, get_attackers_count(), user_updates, tr_loaders, criterion)
 
-        dyanmic_vote(model, user_updates, scores, trimmed_vote_sum)
+        dyanmic_vote(model, user_updates, scores, vote)
         del user_updates
         if epoch % 20 == 0:
             t_loss, t_acc = test(te_loader, model, criterion, args.device) 
