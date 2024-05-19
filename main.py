@@ -7,7 +7,7 @@ import torch
 
 import data
 from FL_train import *
-from training.frl_footrule import train_with_frl_variant
+from training.frl_variant import train_with_frl_variant
 
 
 

@@ -12,7 +12,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from aggregations import get_voting_mechanism
 from utils import train, Find_rank, dyanmic_vote, test
-from voting_mechanisms import trimmed_vote_sum
+from frl_attacks import get_frl_attack
 
 def train_with_frl_variant(tr_loaders, te_loader):
     print ("#########Federated Learning using Rankings - Footrule Variant############")
@@ -96,6 +96,7 @@ def run_benign_users(epoch, FLmodel, users, user_updates, tr_loaders, criterion)
 
 def run_malicious_users(epoch, FLmodel, users, n_attackers, user_updates, tr_loaders, criterion):
     sum_args_sorts_mal={}
+    attack = get_frl_attack()
     for kk in np.random.choice(n_attackers, min(n_attackers, args.rand_mal_clients), replace=False):
         torch.cuda.empty_cache()  
         mp = copy.deepcopy(FLmodel)
@@ -118,9 +119,11 @@ def run_malicious_users(epoch, FLmodel, users, n_attackers, user_updates, tr_loa
 
     for n, m in FLmodel.named_modules():
         if hasattr(m, "scores"):
-            rank_mal_agr=torch.sort(sum_args_sorts_mal[str(n)], descending=True)[1]
+            name = str(n)
+            reputations = sum_args_sorts_mal[name]
+            mal_ranking = attack(reputations)
             for kk in users:
-                user_updates[str(n)]=rank_mal_agr[None,:] if len(user_updates[str(n)]) == 0 else torch.cat((user_updates[str(n)], rank_mal_agr[None,:]), 0)
+                user_updates[str(n)]=mal_ranking[None,:] if len(user_updates[name]) == 0 else torch.cat((user_updates[name], mal_ranking[None,:]), 0)
     del sum_args_sorts_mal
 
 def run_user_training(model, tr_loaders, criterion, kk, epoch):
