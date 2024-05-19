@@ -8,6 +8,7 @@ test_batch_size=128
 FL_type=FrlVariant
 aggregation_method=trimmed_mean_frl
 ranking_distance_method=l2_norm
+frl_attack=reverse
 local_epochs=2
 FL_global_epochs=2000
 at_fractions=0.2
