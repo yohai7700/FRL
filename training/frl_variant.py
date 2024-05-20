@@ -23,7 +23,7 @@ def train_with_frl_variant(tr_loaders, te_loader):
     vote = get_voting_mechanism(args.aggregation_method)
 
     t_best_acc = 0
-    for epoch in range(args.FL_global_epochs):
+    for epoch in range(args.FL_global_epochs + 1):
         print(f"starting epoch: {epoch}")
         torch.cuda.empty_cache()
         user_updates = defaultdict(list)

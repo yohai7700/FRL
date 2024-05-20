@@ -15,7 +15,7 @@ def swap_half_reverse_attack(reputations):
     ranking = torch.sort(reputations)[1]
     half_len = len(ranking) // 2
     first_half = ranking[:half_len]
-    second_half = torch.flip(ranking[half_len:], 1)
+    second_half = torch.flip(ranking[half_len:], [0])
     return torch.cat([second_half, first_half])
 
 def get_frl_attack():

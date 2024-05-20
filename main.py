@@ -8,6 +8,7 @@ import torch
 import data
 from FL_train import *
 from training.frl_variant import train_with_frl_variant
+from frl_attacks import swap_half_attack, swap_half_reverse_attack
 
 
 
@@ -58,7 +59,7 @@ def main():
     print ("type of FL: ", args.FL_type)
     if args.FL_type == "FrlVariant":
         train_with_frl_variant(tr_loaders, te_loader)
-    if args.FL_type == "FRL":
+    elif args.FL_type == "FRL":
         FRL_train(tr_loaders, te_loader)
     elif args.FL_type == "FedAVG":
         FedAVG(tr_loaders, te_loader)
